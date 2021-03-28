@@ -25,7 +25,6 @@ import gzip
 import lxc
 import os
 import shutil
-import subprocess
 import sys
 import time
 
@@ -81,7 +80,7 @@ class DeviceInfo(object):
     def check_32binder(self):
         for line in gzip.open('/proc/config.gz', mode='r'):
             option = line.strip().split(b'=')
-            if len(option) is not 2:
+            if len(option) != 2:
                 continue
 
             if (option[0] == 'CONFIG_ANBOX_BINDER_IPC_32BIT' and
@@ -90,13 +89,13 @@ class DeviceInfo(object):
         return False
 
     def get(self):
-        32binder = self.check_32binder()
+        binder32 = self.check_32binder()
         # TODO: Get the package architecture we're using once arm64/x86 images
         # for anbox are built and available on the UBports server
         # For now, we just always use armhf image
         #arch = subprocess.check_output(['dpkg', '--print-architecture']).strip()
         arch = 'armhf'
-        return 'android-%s-%dbinder' % (arch, 32binder ? 32 : 64)
+        return 'android-%s-%dbinder' % (arch, 32 if binder32 else 64)
 
 
 class AnboxContainer(object):
