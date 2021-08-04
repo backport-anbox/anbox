@@ -315,17 +315,25 @@ status_t QemuClient::receiveMessage(void** data, size_t* data_size)
              __FUNCTION__, payload_size);
         return ENOMEM;
     }
-    rd_res = qemud_fd_read(mPipeFD, *data, payload_size);
-    if (static_cast<size_t>(rd_res) == payload_size) {
-        *data_size = payload_size;
-        return NO_ERROR;
-    } else {
-        ALOGE("%s: Read size %d doesnt match expected payload size %zu: %s",
-             __FUNCTION__, rd_res, payload_size, strerror(errno));
-        free(*data);
-        *data = NULL;
-        return errno ? errno : EIO;
+    size_t read_size = 0;
+    while (read_size < payload_size) {
+        if (read_size > 0) {
+            ALOGV("%s: Reading %zuth byte of expected payload %zu: %s", __FUNCTION__, read_size, payload_size, strerror(errno));
+        }
+        // Ensure that errno is cleared
+        errno = 0;
+        rd_res = qemud_fd_read(mPipeFD, static_cast<char*>(*data) + read_size, payload_size);
+        if (rd_res <= 0) {
+            ALOGE("%s: Read size %d doesnt match expected payload size %zu: %s",
+                __FUNCTION__, read_size, payload_size, strerror(errno));
+            free(*data);
+            *data = NULL;
+            return errno ? errno : EIO;
+        }
+        read_size += static_cast<size_t>(rd_res);
     }
+    *data_size = payload_size;
+    return NO_ERROR;
 }
 
 status_t QemuClient::doQuery(QemuQuery* query)
@@ -336,7 +344,7 @@ status_t QemuClient::doQuery(QemuQuery* query)
         return query->mQueryDeliveryStatus;
     }
 
-    LOGQ("Send query '%s'", query->mQuery);
+    ALOGE("Send query '%s'", query->mQuery);
 
     /* Send the query. */
     status_t res = sendMessage(query->mQuery, strlen(query->mQuery) + 1);
@@ -345,7 +353,7 @@ status_t QemuClient::doQuery(QemuQuery* query)
         res = receiveMessage(reinterpret_cast<void**>(&query->mReplyBuffer),
                       &query->mReplySize);
         if (res == NO_ERROR) {
-            LOGQ("Response to query '%s': Status = '%.2s', %d bytes in response",
+            ALOGE("Response to query '%s': Status = '%.2s', %d bytes in response",
                  query->mQuery, query->mReplyBuffer, query->mReplySize);
         } else {
             ALOGE("%s Response to query '%s' has failed: %s",
