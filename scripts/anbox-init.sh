@@ -19,11 +19,8 @@ function prepare_filesystem() {
 	# These dev files need to be adjusted everytime as they are
 	# bind mounted into the temporary rootfs
 	for f in qemu_pipe qemu_trace goldfish_pipe input/* ; do
-		if [ ! -e "/dev/$f" ] ; then
-			continue
-		fi
-		chown system:system /dev/$f
-		chmod 0666 /dev/$f
+		chown system:system /dev/$f || true
+		chmod 0777 /dev/$f || true
 	done
 }
 

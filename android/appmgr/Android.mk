@@ -14,6 +14,5 @@ LOCAL_OVERRIDES_PACKAGES := \
 	Home \
 	Launcher2 \
 	Launcher3 \
-	LatinIME \
 	QuickSearchBox
 include $(BUILD_PACKAGE)
