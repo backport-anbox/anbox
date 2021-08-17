@@ -380,6 +380,9 @@ target_link_libraries(anbox-core
   OpenGLESDispatch
   OpenglCodecCommon
   anbox-protobuf
+  hybris-common
+  camera
+  GLESv2
   xdg)
 
 add_executable(anbox main.cpp ${BACKWARD_ENABLE})
