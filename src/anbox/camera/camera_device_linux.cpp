@@ -281,9 +281,13 @@ int LinuxCameraDevice::openDevice() {
     struct CameraControlListener listener;
 	memset(&listener, 0, sizeof(listener));
 	listener.on_preview_frame_cb = preview_frame_cb;
-
-    handle = android_camera_connect_to(FRONT_FACING_CAMERA_TYPE,
-			&listener);
+	if(strcmp(device_name,"front")){
+	// 前
+        handle = android_camera_connect_to(FRONT_FACING_CAMERA_TYPE, &listener);
+	}else{
+	//后
+        handle = android_camera_connect_to(BACK_FACING_CAMERA_TYPE, &listener);
+	}
 	if (handle == NULL) {
 		printf("Problem connecting to camera");
 		return 1;
@@ -384,7 +388,7 @@ std::shared_ptr<CameraDevice> CameraDevice::openCameraDevice(const char* name,
   std::shared_ptr<LinuxCameraDevice> cd = std::make_shared<LinuxCameraDevice>();
 
   /* Allocate and initialize the descriptor. */
-  cd->device_name = name != NULL ? strdup(name) : strdup("camera0");
+  cd->device_name = name != NULL ? strdup(name) : strdup("back");
   cd->input_channel = inp_channel;
 
   /* Open the device. */
@@ -397,25 +401,34 @@ std::shared_ptr<CameraDevice> CameraDevice::openCameraDevice(const char* name,
 
 std::shared_ptr<std::vector<CameraInfo>>
 CameraDevice::enumerateCameraDevices(int max) {
-  char dev_name[24];
+
   const auto result = std::make_shared<std::vector<CameraInfo>>();
 
-  for (int n = 0; n < max; n++) {
-    sprintf(dev_name, "camera%d", n);
-    const auto cd = openCameraDevice(dev_name, 0);
-    if (cd) {
-      LinuxCameraDevice* lcd = dynamic_cast<LinuxCameraDevice*>(cd.get());
+//后摄像头
+    const auto back = openCameraDevice("back", 0);
+    if (back) {
+      LinuxCameraDevice* lcd = dynamic_cast<LinuxCameraDevice*>(back.get());
       CameraInfo ci;
       if (!lcd->getInfo(&ci)) {
-        char user_name[24];
-        sprintf(user_name, "camera%d", n);
-        ci.display_name = strdup(user_name);
+        ci.display_name = strdup("back");
         ci.in_use = 0;
         result->push_back(ci);
       }
-      cd->closeCameraDevice();
+      back->closeCameraDevice();
     }
-  }
+    // 前摄像头
+    const auto front = openCameraDevice("front", 0);
+    if (front) {
+      LinuxCameraDevice* lcd = dynamic_cast<LinuxCameraDevice*>(front.get());
+      CameraInfo ci;
+      if (!lcd->getInfo(&ci)) {
+        ci.display_name = strdup("front");
+        ci.in_use = 0;
+        result->push_back(ci);
+      }
+      front->closeCameraDevice();
+    }
+
 
   return result;
 }
