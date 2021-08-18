@@ -40,7 +40,7 @@ namespace camera {
  */
 CameraService::CameraService() {
   std::string hw_camera_back = utils::get_env_value("ANBOX_HW_CAMERA_BACK", "webcam0");
-  std::string hw_camera_front = utils::get_env_value("ANBOX_HW_CAMERA_FRONT", "");
+  std::string hw_camera_front = utils::get_env_value("ANBOX_HW_CAMERA_FRONT", "webcam1");
 
   /* Lets see if HW config uses web cameras. */
   if (!utils::string_starts_with(hw_camera_back, "webcam") &&
@@ -58,7 +58,7 @@ CameraService::CameraService() {
     E("Error while enumerating camera devices");
     return;
   }
-  D("Found %d hardware cameras", ci->size());
+  W("Found %d hardware cameras", ci->size());
   if (ci->size() == 0) {
     /* Nothing is connected - nothing to emulate. */
     return;
@@ -104,7 +104,7 @@ void CameraService::setupWebcam(const std::string &disp_name,
   /* This camera is taken. */
   found->in_use = 1;
   camera_info.back().direction = dir;
-  DEBUG("Camera %d '%s' connected to '%s' facing %s using %.4s pixel format",
+  W("Camera %d '%s' connected to '%s' facing %s using %.4s pixel format",
     camera_info.size() - 1, camera_info.back().display_name,
     camera_info.back().device_name,
     camera_info.back().direction,

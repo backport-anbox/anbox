@@ -410,7 +410,7 @@ CameraDevice::enumerateCameraDevices(int max) {
       LinuxCameraDevice* lcd = dynamic_cast<LinuxCameraDevice*>(back.get());
       CameraInfo ci;
       if (!lcd->getInfo(&ci)) {
-        ci.display_name = strdup("back");
+        ci.display_name = strdup("webcam0");
         ci.in_use = 0;
         result->push_back(ci);
       }
@@ -422,7 +422,7 @@ CameraDevice::enumerateCameraDevices(int max) {
       LinuxCameraDevice* lcd = dynamic_cast<LinuxCameraDevice*>(front.get());
       CameraInfo ci;
       if (!lcd->getInfo(&ci)) {
-        ci.display_name = strdup("front");
+        ci.display_name = strdup("webcam1");
         ci.in_use = 0;
         result->push_back(ci);
       }
