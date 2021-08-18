@@ -174,7 +174,7 @@ class LinuxCameraDevice : public CameraDevice {
   CameraIoType                io_type;
   /* Allocated framebuffers. */
   std::vector<CameraFrameBuffer> framebuffers;
-
+  int buffer_count;
  public:
 
   /* Initialises an instance of LinuxCameraDevice structure. Note that this
@@ -252,15 +252,24 @@ LinuxCameraDevice::~LinuxCameraDevice() {
 }
 
 void LinuxCameraDevice::preview_frame_cb(void* data, uint32_t data_size, void* context){
-    LinuxCameraDevice* lcd = (LinuxCameraDevice*)context;
+    LinuxCameraDevice* lcd = static_cast<LinuxCameraDevice*>(context);
 
 	printf("%s: %d \n", __PRETTY_FUNCTION__, data_size);
-	lcd->framebuffers[0].size = data_size;
-    //lcd->framebuffers[0].data = static_cast<uint8_t*>(malloc(framebuffers[0].size));
-    lcd->framebuffers[0].data = static_cast<uint8_t*>(data);
-
-    lcd->actual_pixel_format.pixelformat = V4L2_PIX_FMT_YUV420;
-    lcd->actual_pixel_format.sizeimage = data_size;
+	if(lcd->buffer_count < 4){
+	   lcd->framebuffers[lcd->buffer_count].size = data_size;
+       //lcd->framebuffers[0].data = static_cast<uint8_t*>(malloc(framebuffers[0].size));
+       lcd->framebuffers[lcd->buffer_count].data = static_cast<uint8_t*>(data);
+       lcd->buffer_count ++;
+       lcd->actual_pixel_format.pixelformat = V4L2_PIX_FMT_YUV420;
+       lcd->actual_pixel_format.sizeimage = data_size;
+    }else{
+       for(int i = 0 ;i < 3 ;i ++){
+           lcd->framebuffers[i].size = lcd->framebuffers[i+1].size;
+           lcd->framebuffers[i].data = lcd->framebuffers[i+1].data;
+       }
+       lcd->framebuffers[3].size = data_size;
+       lcd->framebuffers[3].data = static_cast<uint8_t*>(data);
+    }
 }
 
 void LinuxCameraDevice::reset() {
@@ -303,7 +312,8 @@ int LinuxCameraDevice::getInfo(CameraInfo* cis) {
 int LinuxCameraDevice::startCapturing(uint32_t pixel_format,
                                       unsigned int frame_width,
                                       unsigned int frame_height) {
-
+    framebuffers.resize(4);
+    buffer_count = 0;
 
     actual_pixel_format.width = frame_width;
     actual_pixel_format.height = frame_height;
@@ -321,7 +331,6 @@ int LinuxCameraDevice::startCapturing(uint32_t pixel_format,
     //使能回调preview_frame_cb
 	android_camera_set_preview_callback_mode(handle,PREVIEW_CALLBACK_ENABLED);
 	android_camera_start_preview(handle);
-
   return 0;
 }
 
