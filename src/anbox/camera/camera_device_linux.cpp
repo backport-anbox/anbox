@@ -214,6 +214,7 @@ class LinuxCameraDevice : public CameraDevice {
 
   // 预览数据回调
   static void preview_frame_cb(void* data, uint32_t data_size, void* context);
+  static void preview_texture_needs_update_cb(void* context);
 
  public:
   // Inherited interface
@@ -273,6 +274,9 @@ void LinuxCameraDevice::preview_frame_cb(void* data, uint32_t data_size, void* c
     E("preview_frame_cb buffer_count=%d",lcd->buffer_count);
 }
 
+void LinuxCameraDevice::preview_texture_needs_update_cb(void* context){
+    E("%s\n", __PRETTY_FUNCTION__);
+}
 void LinuxCameraDevice::reset() {
   closeCameraDevice();
   openDevice();
@@ -282,11 +286,14 @@ int LinuxCameraDevice::openDevice() {
     struct CameraControlListener listener;
 	memset(&listener, 0, sizeof(listener));
 	listener.on_preview_frame_cb = preview_frame_cb;
+	listener.on_preview_texture_needs_update_cb = preview_texture_needs_update_cb;
 	if(strcmp(device_name,"front")){
 	// 前
+        E("openDevice camera front");
         handle = android_camera_connect_to(FRONT_FACING_CAMERA_TYPE, &listener);
 	}else{
 	//后
+        E("openDevice camera back");
         handle = android_camera_connect_to(BACK_FACING_CAMERA_TYPE, &listener);
 	}
 	if (handle == NULL) {
@@ -336,6 +343,7 @@ int LinuxCameraDevice::startCapturing(uint32_t pixel_format,
     //使能回调preview_frame_cb
 	android_camera_set_preview_callback_mode(handle,PREVIEW_CALLBACK_ENABLED);
 	android_camera_start_preview(handle);
+    E("%s\n", __PRETTY_FUNCTION__);
   return 0;
 }
 
@@ -362,7 +370,7 @@ int LinuxCameraDevice::readFrame(ClientFrameBuffer* framebuffers,
 
   while(buffer_count < 4){
     E("Camera buffer_count=%d",buffer_count);
-    sleep(500);
+    //sleep(500);
   }
 
     /* Convert frame to the receiving buffers. */

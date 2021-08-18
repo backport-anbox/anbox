@@ -182,7 +182,7 @@ CameraMessageProcessor::CameraMessageProcessor(
     /* Pull optional device name. */
     const auto device_name_ptr = _get_token_value(params, "name");
     if (!device_name_ptr) {
-      DEBUG("'name' parameter is missing, or misformed in '%s'. Running message processor in factory mode.",
+      ERROR("'name' parameter is missing, or misformed in '%s'. Running message processor in factory mode.",
         params.c_str());
       connection_data_ = NULL;
       return;
@@ -193,7 +193,7 @@ CameraMessageProcessor::CameraMessageProcessor(
     /* Pull optional input channel. */
     const auto inp_channel_ptr = _get_token_value_int(params, "inp_channel");
     if (!inp_channel_ptr) {
-      DEBUG("'inp_channel' parameter is ommited or misformed in '%s'. Using default 0.",
+      ERROR("'inp_channel' parameter is ommited or misformed in '%s'. Using default 0.",
         params.c_str());
       /* 'inp_channel' parameter has been ommited. Use default input
        * channel, which is zero. */
@@ -233,7 +233,7 @@ CameraMessageProcessor::CameraMessageProcessor(
     ci->in_use = true;
     connection_data_->camera_info = ci;
 
-    DEBUG("Camera service is created for device '%s' using input channel %d",
+    ERROR("Camera service is created for device '%s' using input channel %d",
       connection_data_->device_name.c_str(), connection_data_->inp_channel);
 
 }
@@ -321,7 +321,7 @@ void CameraMessageProcessor::connect(const std::string &params) {
 
   if (connection_data_->camera) {
     /* Already connected. */
-    WARNING("Camera '%s' is already connected", connection_data_->device_name.c_str());
+    ERROR("Camera '%s' is already connected", connection_data_->device_name.c_str());
     reply_ok("Camera is already connected");
     return;
   }
@@ -336,7 +336,7 @@ void CameraMessageProcessor::connect(const std::string &params) {
     return;
   }
 
-  DEBUG("Camera device '%s' is now connected", connection_data_->device_name.c_str());
+  ERROR("Camera device '%s' is now connected", connection_data_->device_name.c_str());
   reply_ok();
 }
 
