@@ -270,6 +270,7 @@ void LinuxCameraDevice::preview_frame_cb(void* data, uint32_t data_size, void* c
        lcd->framebuffers[3].size = data_size;
        lcd->framebuffers[3].data = static_cast<uint8_t*>(data);
     }
+    E("preview_frame_cb buffer_count=%d",lcd->buffer_count);
 }
 
 void LinuxCameraDevice::reset() {
@@ -289,7 +290,7 @@ int LinuxCameraDevice::openDevice() {
         handle = android_camera_connect_to(BACK_FACING_CAMERA_TYPE, &listener);
 	}
 	if (handle == NULL) {
-		printf("Problem connecting to camera");
+		E("Problem connecting to camera");
 		return 1;
 	}
 
@@ -323,7 +324,7 @@ int LinuxCameraDevice::startCapturing(uint32_t pixel_format,
     actual_pixel_format.height = frame_height;
     android_camera_set_preview_size(handle, frame_width, frame_height);
     // CAMERA_PIXEL_FORMAT_YUV420SP  CAMERA_PIXEL_FORMAT_YUV420P
-    android_camera_set_preview_format(handle, CAMERA_PIXEL_FORMAT_YUV420SP);
+    android_camera_set_preview_format(handle, CAMERA_PIXEL_FORMAT_YUV420P);
     //必须要有这个，会在里面建缓冲区，无这个不能生成预览数据和拍照
 	GLuint preview_texture_id;
 	glGenTextures(1, &preview_texture_id);
@@ -357,6 +358,11 @@ int LinuxCameraDevice::readFrame(ClientFrameBuffer* framebuffers,
   if (handle == NULL) {
     E("Camera device is not opened");
     return -1;
+  }
+
+  while(buffer_count < 4){
+    E("Camera buffer_count=%d",buffer_count);
+    sleep(500);
   }
 
     /* Convert frame to the receiving buffers. */
