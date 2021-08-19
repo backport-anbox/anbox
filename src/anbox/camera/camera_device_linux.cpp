@@ -332,6 +332,8 @@ int LinuxCameraDevice::startCapturing(uint32_t pixel_format,
     android_camera_set_preview_size(handle, frame_width, frame_height);
     // CAMERA_PIXEL_FORMAT_YUV420SP  CAMERA_PIXEL_FORMAT_YUV420P
     android_camera_set_preview_format(handle, CAMERA_PIXEL_FORMAT_YUV420P);
+    FocusRegion fr = { top: -200, left: -200, bottom: 200, right: 200, weight: 300};
+    android_camera_set_focus_region(handle, &fr);
     //必须要有这个，会在里面建缓冲区，无这个不能生成预览数据和拍照
 	GLuint preview_texture_id;
 	glGenTextures(1, &preview_texture_id);
@@ -368,9 +370,9 @@ int LinuxCameraDevice::readFrame(ClientFrameBuffer* framebuffers,
     return -1;
   }
 
-  while(buffer_count < 4){
+  if (buffer_count < 4){
     E("Camera buffer_count=%d",buffer_count);
-    //sleep(500);
+    return 1;
   }
 
     /* Convert frame to the receiving buffers. */
