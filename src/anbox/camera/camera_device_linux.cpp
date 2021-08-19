@@ -309,8 +309,8 @@ int LinuxCameraDevice::openDevice() {
 int LinuxCameraDevice::getInfo(CameraInfo* cis) {
   const auto result = std::make_shared<std::vector<CameraFrameDim>>();
   result->resize(1);
-  result->at(0).width = 1920;
-  result->at(0).height = 1080;
+  result->at(0).width = 960;
+  result->at(0).height = 720;
 
   cis->device_name = strdup(device_name);
   cis->inp_channel = input_channel;
